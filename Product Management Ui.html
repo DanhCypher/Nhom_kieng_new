@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý sản phẩm</title>
+    <link rel="stylesheet" href="/css/theme.min.css">
+</head>
+<body style="background-image: url('/img/webp/colorful.webp'); background-size: cover;">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h2>Quản lý sản phẩm</h2>
+                    </div>
+                    <div class="card-body">
+                        <!-- Thêm sản phẩm -->
+                        <form id="addProductForm">
+                            <h3 class="mb-3">Thêm sản phẩm</h3>
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Tên sản phẩm</label>
+                                <input type="text" id="name" name="name" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="price" class="form-label">Giá</label>
+                                <input type="number" id="price" name="price" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="quantity" class="form-label">Số lượng</label>
+                                <input type="number" id="quantity" name="quantity" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Mô tả</label>
+                                <textarea id="description" name="description" class="form-control"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="images" class="form-label">Hình ảnh</label>
+                                <input type="file" id="images" name="images" class="form-control" multiple required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="link" class="form-label">Link sản phẩm</label>
+                                <input type="text" id="link" name="link" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Thêm sản phẩm</button>
+                        </form>
+
+                        <hr>
+
+                        <!-- Sửa sản phẩm -->
+                        <form id="editProductForm" class="mt-4">
+                            <h3 class="mb-3">Sửa sản phẩm</h3>
+                            <div class="mb-3">
+                                <label for="editId" class="form-label">ID sản phẩm</label>
+                                <input type="text" id="editId" name="id" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editName" class="form-label">Tên sản phẩm</label>
+                                <input type="text" id="editName" name="name" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="editPrice" class="form-label">Giá</label>
+                                <input type="number" id="editPrice" name="price" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="editQuantity" class="form-label">Số lượng</label>
+                                <input type="number" id="editQuantity" name="quantity" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="editDescription" class="form-label">Mô tả</label>
+                                <textarea id="editDescription" name="description" class="form-control"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-warning w-100">Sửa sản phẩm</button>
+                        </form>
+
+                        <hr>
+
+                        <!-- Xóa sản phẩm -->
+                        <form id="deleteProductForm" class="mt-4">
+                            <h3 class="mb-3">Xóa sản phẩm</h3>
+                            <div class="mb-3">
+                                <label for="deleteId" class="form-label">ID sản phẩm</label>
+                                <input type="text" id="deleteId" name="id" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-danger w-100">Xóa sản phẩm</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Hàm xử lý submit cho từng form
+        document.getElementById('addProductForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const response = await fetch('/api/products', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            alert(result.message);
+        };
+
+        document.getElementById('editProductForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editId').value;
+            const data = {
+                name: document.getElementById('editName').value,
+                price: document.getElementById('editPrice').value,
+                quantity: document.getElementById('editQuantity').value,
+                description: document.getElementById('editDescription').value
+            };
+            const response = await fetch(`/api/products/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            alert(result.message);
+        };
+
+        document.getElementById('deleteProductForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('deleteId').value;
+            const response = await fetch(`/api/products/${id}`, {
+                method: 'DELETE'
+            });
+            const result = await response.json();
+            alert(result.message);
+        };
+    </script>
+</body>
+</html>

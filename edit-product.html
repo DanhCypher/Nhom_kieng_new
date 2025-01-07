@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sửa sản phẩm</title>
+    <link rel="stylesheet" href="/css/theme.min.css">
+</head>
+<body style="background-image: url('/img/webp/colorful.webp'); background-size: cover;">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h2>Sửa sản phẩm</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="editProductForm">
+                            <!-- Tên sản phẩm -->
+                            <div class="mb-3">
+                                <label for="editName" class="form-label">Tên sản phẩm</label>
+                                <input type="text" id="editName" name="name" class="form-control">
+                            </div>
+
+                            <!-- Giá -->
+                            <div class="mb-3">
+                                <label for="editPrice" class="form-label">Giá</label>
+                                <input type="number" id="editPrice" name="price" class="form-control">
+                            </div>
+
+                            <!-- Số lượng -->
+                            <div class="mb-3">
+                                <label for="editQuantity" class="form-label">Số lượng</label>
+                                <input type="number" id="editQuantity" name="quantity" class="form-control">
+                            </div>
+
+                            <!-- Mô tả -->
+                            <div class="mb-3">
+                                <label for="editDescription" class="form-label">Mô tả</label>
+                                <textarea id="editDescription" name="description" class="form-control"></textarea>
+                            </div>
+
+                            <!-- Liên kết sản phẩm -->
+                            <div class="mb-3">
+                                <label for="editLink" class="form-label">Liên kết sản phẩm</label>
+                                <input type="url" id="editLink" name="link" class="form-control">
+                            </div>
+
+                            <!-- Loại sản phẩm (nhập) -->
+                            <div class="mb-3">
+                                <label for="editCategory" class="form-label">Loại sản phẩm</label>
+                                <input type="text" id="editCategory" name="category" class="form-control" placeholder="Nhập loại sản phẩm">
+                            </div>
+
+                            <!-- Hình ảnh hiện tại -->
+                            <div class="mb-3">
+                                <label class="form-label">Hình ảnh hiện tại</label>
+                                <div id="currentImages" class="d-flex flex-wrap gap-2">
+                                    <!-- Hình ảnh sẽ được tải từ API -->
+                                </div>
+                            </div>
+
+                            <!-- Thêm hình ảnh mới -->
+                            <div class="mb-3">
+                                <label for="editImages" class="form-label">Thêm hình ảnh mới</label>
+                                <input type="file" id="editImages" name="images" class="form-control" multiple accept="image/*">
+                            </div>
+
+                            <!-- Nút gửi -->
+                            <button type="submit" class="btn btn-warning w-100">Sửa sản phẩm</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Lấy ID sản phẩm từ URL
+        function getProductIdFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('id');
+        }
+
+        // Hiển thị hình ảnh hiện tại
+        function displayCurrentImages(images) {
+            const currentImagesContainer = document.getElementById('currentImages');
+            currentImagesContainer.innerHTML = ''; // Xóa hình ảnh cũ
+
+            images.forEach(imagePath => {
+                const imgElement = document.createElement('img');
+                imgElement.src = imagePath;
+                imgElement.alt = 'Hình ảnh sản phẩm';
+                imgElement.style.width = '100px';
+                imgElement.style.height = '100px';
+                imgElement.style.objectFit = 'cover';
+                imgElement.style.border = '1px solid #ddd';
+                imgElement.style.borderRadius = '5px';
+                currentImagesContainer.appendChild(imgElement);
+            });
+        }
+
+        // Tự động lấy thông tin sản phẩm khi trang được tải
+        async function fetchProductDetails(id) {
+            try {
+                const response = await fetch(`/api/products/${id}`);
+                if (!response.ok) {
+                    throw new Error('Không tìm thấy sản phẩm với ID này.');
+                }
+                const product = await response.json();
+
+                // Điền thông tin sản phẩm vào form
+                document.getElementById('editName').value = product.name || '';
+                document.getElementById('editPrice').value = product.price || '';
+                document.getElementById('editQuantity').value = product.quantity || '';
+                document.getElementById('editDescription').value = product.description || '';
+                document.getElementById('editLink').value = product.link || '';
+
+                // Điền loại sản phẩm vào form
+                if (product.category) {
+                    document.getElementById('editCategory').value = product.category;
+                }
+
+                // Hiển thị hình ảnh hiện tại
+                if (product.images) {
+                    displayCurrentImages(product.images);
+                }
+            } catch (error) {
+                alert(error.message);
+                console.error('Lỗi khi lấy sản phẩm:', error);
+            }
+        }
+
+        // Xử lý gửi yêu cầu chỉnh sửa sản phẩm
+        document.getElementById('editProductForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = getProductIdFromUrl();
+            const formData = new FormData();
+
+            // Thêm dữ liệu từ form vào FormData
+            formData.append('name', document.getElementById('editName').value);
+            formData.append('price', document.getElementById('editPrice').value);
+            formData.append('quantity', document.getElementById('editQuantity').value);
+            formData.append('description', document.getElementById('editDescription').value);
+            formData.append('link', document.getElementById('editLink').value);
+
+            // Thêm loại sản phẩm vào FormData
+            formData.append('category', document.getElementById('editCategory').value);
+
+            // Thêm hình ảnh mới vào FormData
+            const files = document.getElementById('editImages').files;
+            for (const file of files) {
+                formData.append('images', file);
+            }
+
+            try {
+                const response = await fetch(`/api/products/${id}`, {
+                    method: 'PUT',
+                    body: formData // Gửi dữ liệu kèm file
+                });
+
+                if (!response.ok) {
+                    throw new Error('Không thể sửa sản phẩm. Vui lòng thử lại.');
+                }
+
+                const result = await response.json();
+                alert(result.message || 'Sửa sản phẩm thành công.');
+                window.location.href = `/chitietsp`;
+            } catch (error) {
+                alert(error.message);
+                console.error('Lỗi khi sửa sản phẩm:', error);
+            }
+        };
+
+        // Khi trang tải, tự động lấy thông tin sản phẩm
+        document.addEventListener('DOMContentLoaded', () => {
+            const productId = getProductIdFromUrl();
+            if (productId) {
+                fetchProductDetails(productId);
+            } else {
+                alert('Không tìm thấy ID sản phẩm trong URL.');
+            }
+        });
+    </script>
+</body>
+</html>

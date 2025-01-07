@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách sản phẩm và Liên kết</title>
+    <link rel="stylesheet" href="/css/styles.css"> <!-- Đường dẫn CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        table tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-edit {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        /* Nút quay lại trang chủ */
+        .btn-back {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-back:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Danh sách sản phẩm</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Tên sản phẩm</th>
+                <th>Giá</th>
+                <th>Số lượng</th>
+                <th>Hình ảnh</th>
+                <th>Mô tả</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody id="product-table-body">
+            <!-- Các sản phẩm sẽ được thêm vào đây -->
+        </tbody>
+    </table>
+
+    <h1>Danh sách liên kết</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Tiêu đề</th>
+                <th>URL</th>
+                <th>Hành động</th> <!-- Cột hành động cho sửa và xóa -->
+            </tr>
+        </thead>
+        <tbody id="link-table-body">
+            <!-- Các liên kết sẽ được thêm vào đây -->
+        </tbody>
+    </table>
+    
+    <!-- Nút quay lại trang chủ -->
+    <a href="/" class="btn-back">Quay lại trang chủ</a>
+
+    <script>
+        // Lấy danh sách sản phẩm từ API
+        async function fetchProducts() {
+            try {
+                const response = await fetch('/api/products');
+                if (!response.ok) {
+                    throw new Error('Không thể lấy dữ liệu sản phẩm');
+                }
+                const products = await response.json();
+
+                const tableBody = document.getElementById('product-table-body');
+                tableBody.innerHTML = ''; // Xóa dữ liệu cũ
+
+                products.forEach(product => {
+                    const row = document.createElement('tr');
+
+                    row.innerHTML = `
+                        <td>${product.name}</td>
+                        <td>${product.price.toLocaleString()} VND</td>
+                        <td>${product.quantity}</td>
+                        <td>
+                            ${product.images.map(img => `<img src="${img}" alt="Ảnh sản phẩm" width="50" />`).join(' ')}
+                        </td>
+                        <td>${product.description || 'Không có mô tả'}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-edit" onclick="editProduct('${product._id}')">Sửa</button>
+                                <button class="btn btn-delete" onclick="deleteProduct('${product._id}')">Xóa</button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Lỗi khi lấy danh sách sản phẩm:', error);
+            }
+        }
+
+        // Sửa sản phẩm
+        function editProduct(productId) {
+            window.location.href = `/suasp?id=${productId}`;
+        }
+
+        // Xóa sản phẩm
+        async function deleteProduct(productId) {
+            if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
+                try {
+                    const response = await fetch(`/api/products/${productId}`, {
+                        method: 'DELETE',
+                    });
+
+                    if (response.ok) {
+                        alert('Sản phẩm đã được xóa.');
+                        fetchProducts(); // Cập nhật lại danh sách
+                    } else {
+                        const error = await response.json();
+                        alert('Lỗi khi xóa sản phẩm: ' + error.message);
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi xóa sản phẩm:', error);
+                }
+            }
+        }
+
+        // Lấy danh sách liên kết từ API
+        async function fetchLinks() {
+            try {
+                const response = await fetch('http://localhost:3002/api/links/get');
+                if (!response.ok) {
+                    throw new Error('Không thể lấy dữ liệu liên kết');
+                }
+                const links = await response.json();
+
+                const tableBody = document.getElementById('link-table-body');
+                tableBody.innerHTML = ''; // Xóa dữ liệu cũ
+
+                links.forEach(link => {
+                    const row = document.createElement('tr');
+
+                    row.innerHTML = `
+                        <td>${link.title}</td>
+                        <td><a href="${link.youtubeLink}" target="_blank">${link.youtubeLink}</a></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-edit" onclick="editLink('${link._id}')">Sửa</button>
+                                <button class="btn btn-delete" onclick="deleteLink('${link._id}')">Xóa</button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Lỗi khi lấy danh sách liên kết:', error);
+            }
+        }
+
+        // Sửa liên kết
+        function editLink(linkId) {
+            window.location.href = `/capnhatlink?id=${linkId}`;
+        }
+
+        // Xóa liên kết
+        async function deleteLink(linkId) {
+            if (confirm('Bạn có chắc chắn muốn xóa liên kết này?')) {
+                try {
+                    const response = await fetch(`/api/links/youtube/${linkId}`, {
+                        method: 'DELETE',
+                    });
+
+                    if (response.ok) {
+                        alert('Liên kết đã được xóa.');
+                        fetchLinks(); // Cập nhật lại danh sách
+                    } else {
+                        const error = await response.json();
+                        alert('Lỗi khi xóa liên kết: ' + error.message);
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi xóa liên kết:', error);
+                }
+            }
+        }
+
+        // Gọi các hàm để tải danh sách sản phẩm và liên kết khi trang được tải
+        fetchProducts();
+        fetchLinks();
+    </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xóa sản phẩm</title>
+    <link rel="stylesheet" href="/css/theme.min.css">
+</head>
+<body style="background-image: url('/img/webp/colorful.webp'); background-size: cover;">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h2>Xóa sản phẩm</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="deleteProductForm">
+                            <div class="mb-3">
+                                <label for="deleteId" class="form-label">ID sản phẩm</label>
+                                <input type="text" id="deleteId" name="id" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-danger w-100">Xóa sản phẩm</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('deleteProductForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('deleteId').value;
+            const response = await fetch(`/api/products/${id}`, {
+                method: 'DELETE'
+            });
+            const result = await response.json();
+            alert(result.message);
+        };
+    </script>
+</body>
+</html>
